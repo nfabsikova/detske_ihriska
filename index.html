@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="sk">
+    <head>
+        <meta charset="utf-8">
+        <title>Detske ihriska v Bratislave</title>
+
+        <!-- Leaflet CSS-->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+
+        <!-- Leaflet JS-->
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+
+        <style>
+            #mapid { height: 800px; }
+        </style>
+
+    </head>
+    <body>
+        <div id="mapid"></div>
+
+        <script type="text/javascript">
+            
+            var map = L.map('mapid').setView([48.148598, 17.107748], 13);
+
+            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 18,
+                id: 'mapbox/light-v10',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: 'pk.eyJ1IjoibmluYWZhYnNpa292YSIsImEiOiJja2twaWZlMjQwYTFsMzBxbnE5dWo2Mjk1In0.XLvRzC0uK94qxRFEGWZ-fQ'
+            }).addTo(map);
+
+            var myStyle = {
+                radius: 6,
+                fillColor: "#2b9348",
+                color: "white",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+
+            //Add points
+            fetch("data/playground_points_all.geojson")
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log(data);
+                    L.geoJSON(data, {
+                        pointToLayer: function(feature, latlng) {
+                            return L.circleMarker(latlng, myStyle);
+                        },
+                        onEachFeature: function(feature, layer) {
+                            var text = '<div class="popup">'
+
+                            text += popupLine(feature, "Názov", "name")
+                            text += popupLine(feature, "Prevádzkovateľ", "operator")
+                            text += popupLine(feature, "Prístup", "access")
+                            text += popupLine(feature, "Poplatok", "fee")
+                            text += popupLine(feature, "Indoor", "indoor")
+                            
+
+                            text += '</div>'
+                            layer.bindPopup(text)
+                        }
+                    }).addTo(map);
+                });
+            
+            //Define popup line creator function
+            var popupLine = function(feature, name, value) {
+                var text = ""
+                text += "<strong>" + name + ": </strong>"
+                
+                if(feature.properties[value]) {
+                    text += feature.properties[value]
+                } else {
+                    text += "-"
+                }
+                text += "<br>"
+
+                return text
+            }
+            
+        </script>
+    </body>
+</html>
